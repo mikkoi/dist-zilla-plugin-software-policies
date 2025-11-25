@@ -57,15 +57,19 @@ which are commonly present in repositories. Many of these are practically boiler
 but it is good to have them present in the repository, especially if the repository
 is public.
 
+Examples are F<CONTRIBUTING.md>, F<CODE_OF_CONDUCT.md>, F<SECURITY.md>,
+F<FUNDING.md>, F<SUPPORT.md> and F<LICENSE>.
+
 The trouble with boilerplate files is that they are easy to forget.
-You either forget to place in the repository in the first place, or you forget to update them
+You either forget to place them in the repository in the first place, or you forget to update them
 when distribution changes.
 
-One way handle that problem is to create the files during the build and only
+One way to handle that problem is to create the files during the build and only
 include them in the distribution archive. But that means they would not be present in the
 repository itself which is more important nowadays because the repo is public.
-In GitHub, GitLab or similar hosting services, the repository becomes the public
-frontend of the project, not just a place of work. 
+In GitHub, GitLab and similar hosting services, the repository becomes the public
+frontend of the project, not just a place of work and a heap of source code
+from which a release is created.
 
 Some public hosting sites, such as GitHub, place extra weight on these files, and having
 them is seen as an indicator of project health and of being welcoming community engagement.
@@ -118,7 +122,8 @@ you need to set individual configuration for that policy:
     policy_attribute = maintainer=Policies Team <policies.team@example.com
     policy_attribute = report_url=https://github.com/mikkoi/software-policies/security/advisories
 
-The plugin L<Dist::Zilla::Plugin::Software::Policies> does not actually do anything.
+The plugin L<Dist::Zilla::Plugin::Software::Policies> does not actually do anything,
+except verify the configuration is correct.
 The configuration is used by L<Dist::Zilla::Plugin::Test::Software::Policies>
 when creating the test files during the I<build> phase.
 By default the tests are placed in F<xt/author>

@@ -24,9 +24,6 @@ use Path::Tiny qw( path );
 
 use Software::Policies ();
 
-use Data::Dumper;
-
-
 sub abstract { return 'Create software policy files' } ## no critic (NamingConventions::ProhibitAmbiguousNames)
 
 sub usage_desc { return 'dzil policies [--class] [--version] [--format] [--dir] [--filename] [<policy>]' }
@@ -172,6 +169,7 @@ sub _get_policy_config {
     my ($self, $policy, $opt) = @_;
     my $zilla = $self->zilla;
 
+    $zilla->log_debug( [ '_get_policy_config(%s, %s)', $policy, $opt ]);
     # 1. "Default" values, taken from dist.ini
     my %args;
     my %attributes = (
@@ -180,7 +178,7 @@ sub _get_policy_config {
         authors           => $zilla->{'authors'},
         license           => $zilla->license,
         # main_module       => $zilla->{'main_module'},
-        version           => $zilla->version,
+        # version           => $zilla->version,
     );
     $zilla->log_debug( [ 'After 1.' ]);
     $zilla->log_debug( [ 'args: %s', \%args, ] );

@@ -1,3 +1,6 @@
+## no critic (NamingConventions::Capitalization)
+## no critic (ControlStructures::ProhibitPostfixControls)
+## no critic (InputOutput::RequireCheckedSyscalls)
 package Dist::Zilla::App::Command::policies;
 
 use strict;
@@ -7,7 +10,7 @@ use feature qw( say );
 
 # ABSTRACT: Create project policy files
 
-our $VERSION = "0.001";
+our $VERSION = '0.001';
 
 use Carp            qw( carp croak );
 use English qw( -no_match_vars ) ;  # Avoids regex performance
@@ -24,26 +27,23 @@ use Software::Policies ();
 use Data::Dumper;
 
 
-sub abstract { "Create software policy files" }
+sub abstract { return 'Create software policy files' } ## no critic (NamingConventions::ProhibitAmbiguousNames)
 
-sub usage_desc { "dzil policies [--class] [--version] [--format] [--dir] [--filename] [<policy>]" }
+sub usage_desc { return 'dzil policies [--class] [--version] [--format] [--dir] [--filename] [<policy>]' }
 
 sub validate_args
 {
     my ($self, $opt, $arg) = @_;
 
-    my ($policy, $filepath, @extra) = @$arg;
+    my ($policy, @extra) = @{ $arg };
 
-    croak( (__PACKAGE__ =~ m/::(.+)$/)[0] . " accepts two arguments, ignoring " . join ',', @extra )
+    croak( (__PACKAGE__ =~ m/::(.+)$/msx)[0] . ' accepts two arguments, ignoring ' . join q{,}, @extra )
         if @extra;
 
-    croak( q{Cannot use parameter 'filepath' if not setting a specific policy} )
-        if($opt->{'filepath'} && ! scalar @{ $arg });
+    return;
 }
 
 sub opt_spec {
-    my ( $class, $app ) = @_;
-
     return (
         [ 'filepath=s'       => 'optional: filepath of the policy file'                ],
         [ 'class=s'          => 'class of policy' ],
@@ -101,7 +101,7 @@ sub execute
     return;
 }
 
-sub _do_policy {
+sub _do_policy { ## no critic (Subroutines::ProhibitManyArgs)
     my ($self, $policy, $class, $version, $format, $dir, $filename, $attributes) = @_;
     my $zilla = $self->zilla;
 
@@ -125,6 +125,7 @@ sub _do_policy {
         path($d)->mkdir();
         path($d)->child($filename//$_->{'filename'})->spew_utf8($_->{'text'});
     }
+    return;
 }
 
 # We check if we have any policy plugins defined,
@@ -135,8 +136,6 @@ sub _do_policy {
 sub _do_policies {
     my ($self, $opt) = @_;
     my $zilla = $self->zilla;
-
-    my @these_policy_plugins = grep { $_->isa('Dist::Zilla::Plugin::Software::Policies') } @{ $zilla->{'plugins'} };
 
     # Plugins with a specific policy, e.g. [Software::Policies / Contributing]
     # key=policy name, value=plugin
@@ -166,6 +165,7 @@ sub _do_policies {
                 $args{'dir'}, $args{'filename'}, $args{attributes});
         }
     }
+    return;
 }
 
 sub _get_policy_config {
@@ -222,7 +222,7 @@ sub _get_policy_config {
     for my $key (qw( class version format dir filename )) {
         $args{$key} = $opt->{$key} if $opt->{$key};
     }
-    my %attrs = map { split qr/\s*=\s*/msx, $_, 2 } (map { split q{,} } $opt->{'attributes'}//q{});
+    my %attrs = map { split qr/\s*=\s*/msx, $_, 2 } (map { split qr/,/msx } $opt->{'attributes'}//q{});
     @attributes{keys %attrs} = @attrs{keys %attrs};
 
     # Set attributes into %args.

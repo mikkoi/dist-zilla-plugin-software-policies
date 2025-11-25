@@ -1,3 +1,4 @@
+## no critic (ControlStructures::ProhibitPostfixControls)
 package Dist::Zilla::Plugin::Software::Policies;
 
 use strict;
@@ -7,7 +8,7 @@ use feature qw( say );
 
 # ABSTRACT: Create project policy files
 
-our $VERSION = "0.001";
+our $VERSION = '0.001';
 
 use Moose;
 with 'Dist::Zilla::Role::Plugin';
@@ -18,7 +19,7 @@ use namespace::autoclean;
 
 =encoding utf8
 
-=for Pod::Coverage
+=for Pod::Coverage mvp_multivalue_args register_prereqs
 
 =for stopwords Dist
 
@@ -29,6 +30,8 @@ though not likely.
 
 
 =head1 SYNOPSIS
+
+=for test_synopsis BEGIN { die "SKIP: skip this pod!\n"; }
 
     [Software::Policies / Contributing]
     class = PerlDistZilla
@@ -46,9 +49,11 @@ though not likely.
 
 =head1 DESCRIPTION
 
+=for stopwords GitLab
+
 Dist-Zilla-Plugin-Software-Policies is a L<Dist::Zilla> command, plugin and test plugin
 for creating different policy and related files
-which are commonly present in repositories. Many of these are practically boilerplace
+which are commonly present in repositories. Many of these are practically boilerplate
 but it is good to have them present in the repository, especially if the repository
 is public.
 
@@ -66,7 +71,8 @@ Some public hosting sites, such as GitHub, place extra weight on these files, an
 them is seen as an indicator of project health and of being welcoming community engagement.
 GitHub allows searching for projects with different parameters and it provides a special
 interface for files which contain license, code of conduct, contribution guidelines
-and support contact information. To increase the visibily and findability of your project,
+and support contact information. To increase the visibility of the project,
+and make it easier for others to find it,
 it is important to have these files present - even when they provide little benefit
 for the actual users or developers of the repository.
 
@@ -180,9 +186,11 @@ has policy_attribute => (
     default => sub { {} },
 );
 
+=for stopwords dir
+
 =head2 dir
 
-The dir name for the resulting file(s).
+The directory name for the resulting file(s).
 Default: project root.
 
 Usually policy files are at the root of the repository
@@ -200,6 +208,8 @@ has dir => (
 
 =head2 filename
 
+=for stopwords GPL
+
 The file name of the resulting file.
 This is only useful when the policy is written as only one file.
 This is usually the case but there are exceptions, for example
@@ -215,7 +225,7 @@ has filename => (
     isa  => 'Str',
 );
 
-sub mvp_multivalue_args { qw( policy_attribute ) }
+sub mvp_multivalue_args { return qw( policy_attribute ) }
 
 sub register_prereqs {
     my $self = shift;

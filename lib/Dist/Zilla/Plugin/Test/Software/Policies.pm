@@ -40,6 +40,8 @@ with (
 
 In your F<dist.ini>:
 
+=for test_synopsis BEGIN { die "SKIP: skip this pod!\n"; }
+
     [Test::Software::Policies]
     exclude_policy = CodeOfConduct
 
@@ -162,7 +164,6 @@ has _test_files => (
                     $args{'policy'}, $args{'class'}, $args{'version'}, $args{'format'} ] );
 
             my @p = Software::Policies->new()->create( %args );
-            my $content;
             if(@p > 1) {
                 foreach (@p) {
                     my $fn = $self->fill_in_string( $filename, { policy  => $policy . q{_} . $_->{'filename'}, });
@@ -179,7 +180,6 @@ has _test_files => (
                 my $fn = $self->fill_in_string( $filename, { policy  => $policy, });
 
                 # Attach the ready made policy file content to the end of the file, in the __DATA__ section.
-                $content = ( ${$self->section_data('test-policy')} . $p[0]->{'text'});
                 my $content = $self->fill_in_string(
                     ${$self->section_data('test-policy')} . $p[0]->{'text'},
                     { dumper  => \\&_dumper, filepath => $p[0]->{'filename'}, }
@@ -201,15 +201,9 @@ around BUILDARGS => sub {
     my $args = $class->$orig(@arg);
     my %copy = %{ $args };
     my $zilla = delete $copy{zilla};
-    # my $logger = $zilla->logger->proxy({ proxy_prefix => '[Test::Software::Policies] ' });
-    # use Data::Dumper;
-    # say Dumper \%copy;
-    $zilla->log_debug("copy=%s", \%copy);
+    $zilla->log_debug('copy=%s', \%copy);
     my $name  = delete $copy{plugin_name};
     my %other;
-    # # use Data::Dumper;
-    # my %attributes = map { split qr/\s*=\s*/msx, $_, 2 } @{ delete $copy{policy_attribute}//[] };
-    # # say "attributes:" . Dumper (\%attributes);
     $other{'include_policy'} = delete $copy{include_policy} if $copy{include_policy};
     $other{'exclude_policy'} = delete $copy{exclude_policy} if $copy{exclude_policy};
     $other{'filepath_template'} = delete $copy{filepath_template} if $copy{filepath_template};
@@ -242,8 +236,6 @@ sub register_prereqs {
             phase => 'develop',
         },
         'Software::Policies' => 0,
-
-        # TODO also extract list of policies used in file $self->critic_config
     );
 }
 
@@ -259,20 +251,6 @@ sub _dumper {
     return $dump;
 }
 
-# sub _set_policy_specific_options {
-#     my ($policy, $zilla) = @_;
-#     my %options;
-#     if( $policy eq 'CodeOfConduct') {
-#         $options{'name'} = $zilla->{'name'};
-#         $options{'reporting_address'} = $zilla->{'authors'}->[0];
-#     } elsif( $policy eq 'Contributing') {
-#     } elsif( $policy eq 'Security') {
-#         $options{'program'} = $zilla->{'name'};
-#         $options{'maintainer'} = $zilla->{'authors'}->[0];
-#     }
-#     return %options;
-# }
-
 sub munge_file {
     my ($self, $file) = @_;
     my $zilla = $self->zilla;
@@ -280,9 +258,6 @@ sub munge_file {
 
     my ($filename) = $self->filepath_template(); # =~ m/([[:word:]][.{}]-\/\$])/msx;;
     my $fn_regex = $self->fill_in_string( $filename, { policy  => q{([\w]+)}, });
-    # $zilla->log_debug( [ 'munge_file(%s). fn_regex: \'%s\'', $file->name, $fn_regex ] );
-    # return
-    #     unless any { $file } @{ $self->_test_files };
     return unless $file->name =~ m/^ ${fn_regex} $/msx;
     $zilla->log_debug( [ 'munge_file(%s). File is ours', $file->name, ] );
 
@@ -325,30 +300,7 @@ sub munge_file {
     # $self->zilla()->log_debug( [ 'Looking for matching policy: %s:%s:%s', $policy, $class, $version ] );
     $self->zilla()->log_debug( [ 'Looking for matching policy: %s:%s:%s:%s', $args{'policy'}, $args{'class'}, $args{'version'}, $args{'format'} ] );
 
-    # my %p = Software::Policies->new->create( %params );
-    # my %p = Software::Policies->new()->create( %args );
-
-    # my $filename = $self->filepath() =~ m/^([[:word:]\.\-\{}\/\$\s]{1,})$/msx;
-    #
-    # my $fn = $self->fill_in_string(
-    #     $filename, { policy  => $policy, }
-    # );
-    # $file->name($fn);
-    #
-    # Attach the ready made policy file content
-    # to the end of the file, the __DATA__ section.
-    # $file->content($file->content() . $p{'text'});
-
     return $file;
-    # return $file->content(
-    #     $self->fill_in_string(
-    #         $file->content,
-    #         {
-    #             dumper  => \\&_dumper,
-    #             filepath => $p{'filename'},
-    #         }
-    #     )
-    # );
 }
 
 sub _get_policy_config {
@@ -410,7 +362,7 @@ sub _get_policy_config {
         $args{$key} = $opt->{$key} if $opt->{$key};
     }
     # my $attributes = $opt->{'attributes'}//q{};
-    my %attrs = map { split qr/\s*=\s*/msx, $_, 2 } (map { split q{,} } $opt->{'attributes'}//q{});
+    my %attrs = map { split qr/\s*=\s*/msx, $_, 2 } (map { split qr/,/msx } $opt->{'attributes'}//q{});
     @attributes{keys %attrs} = @attrs{keys %attrs};
 
     # Set attributes into %args.

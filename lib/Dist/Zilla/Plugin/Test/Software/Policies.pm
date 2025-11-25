@@ -150,12 +150,6 @@ has _test_files => (
             $zilla->log_debug( [ 'We have the policies: %s', \%check_policies ] );
         }
 
-        # TODO Sanitize filename
-        my ($filename) = $self->filepath_template(); # =~ m/([[:word:]][.{}]-\/\$])/msx;;
-        # my $fn = $self->fill_in_string(
-        #     $filename, { policy  => $policy, }
-        # );
-        # $file->name($fn);
         my @files;
         foreach my $policy (keys %check_policies) {
             my %args = $self->_get_policy_config($policy, {});
@@ -166,10 +160,12 @@ has _test_files => (
             my @p = Software::Policies->new()->create( %args );
             if(@p > 1) {
                 foreach (@p) {
-                    my $fn = $self->fill_in_string( $filename, { policy  => $policy . q{_} . $_->{'filename'}, });
+                    my $fn = $self->fill_in_string(
+                        $self->filepath_template(),
+                        { policy  => $policy . q{_} . ($_->{'filename'} =~ s/[.]/_/grmsx), }
+                    );
 
                     # Attach the ready made policy file content to the end of the file, in the __DATA__ section.
-                    # $content = ( ${$self->section_data('test-policy')} . $_->{'text'});
                     my $content = $self->fill_in_string(
                         ${$self->section_data('test-policy')} . $_->{'text'},
                         { dumper  => \\&_dumper, filepath => $_->{'filename'}, }
@@ -177,7 +173,7 @@ has _test_files => (
                     push @files, Dist::Zilla::File::InMemory->new( name => $fn, content => $content, );
                 }
             } else {
-                my $fn = $self->fill_in_string( $filename, { policy  => $policy, });
+                my $fn = $self->fill_in_string( $self->filepath_template(), { policy  => $policy, });
 
                 # Attach the ready made policy file content to the end of the file, in the __DATA__ section.
                 my $content = $self->fill_in_string(
@@ -256,50 +252,6 @@ sub munge_file {
     my $zilla = $self->zilla;
     $zilla->log_debug( [ 'munge_file(%s)', $file->name ] );
 
-    my ($filename) = $self->filepath_template(); # =~ m/([[:word:]][.{}]-\/\$])/msx;;
-    my $fn_regex = $self->fill_in_string( $filename, { policy  => q{([\w]+)}, });
-    return unless $file->name =~ m/^ ${fn_regex} $/msx;
-    $zilla->log_debug( [ 'munge_file(%s). File is ours', $file->name, ] );
-
-    # my ($class, $version);
-    # my $policy = $file->name();
-    my ($policy) = $file->name() =~ m/^ ${fn_regex} $/msx;
-    # my %opts = _set_policy_specific_options($policy, $zilla);
-    #
-    # # Get "general settings if available"
-    # my $plugin = first {
-    #         $_->isa('Dist::Zilla::Plugin::Software::Policies')
-    #         && $_->plugin_name eq 'Software::Policies'
-    #     } @{ $zilla->plugins };
-    # if( $plugin ) {
-    #     my %new_opts = %{ $plugin->{'policy_option'} };
-    #     @opts{ keys %new_opts } = @new_opts{ keys %new_opts };
-    #     $zilla->log_debug( [ 'Got opts from general plugin, current: %s', \%opts ] );
-    #     $class = $plugin->class if $plugin->class;
-    #     $version = $plugin->version if $plugin->version;
-    # }
-    # my $policy_plugin = first {
-    #         $_->isa('Dist::Zilla::Plugin::Software::Policies')
-    #         && $_->plugin_name eq $policy
-    #     } @{ $zilla->plugins };
-    # if( $policy_plugin ) {
-    #     my %new_opts = %{ $policy_plugin->{'policy_option'} };
-    #     $zilla->log_debug( [ 'Got opts from policy %s plugin: %s', $policy, $policy_plugin->{'policy_option'} ] );
-    #     @opts{ keys %new_opts } = @new_opts{ keys %new_opts };
-    #     $zilla->log_debug( [ 'Got opts from policy %s plugin, current: %s', $policy, \%opts ] );
-    #     $class = $policy_plugin->class if $policy_plugin->class;
-    #     $version = $policy_plugin->version if $policy_plugin->version;
-    # }
-
-    # my %params = ( policy => $policy );
-    # $params{class} = $class if( $class );
-    # $params{version} = $version if( $version );
-    # $params{options} = \%opts;
-    my %args = $self->_get_policy_config($policy, {});
-    $args{policy} = $policy;
-    # $self->zilla()->log_debug( [ 'Looking for matching policy: %s:%s:%s', $policy, $class, $version ] );
-    $self->zilla()->log_debug( [ 'Looking for matching policy: %s:%s:%s:%s', $args{'policy'}, $args{'class'}, $args{'version'}, $args{'format'} ] );
-
     return $file;
 }
 
@@ -344,24 +296,19 @@ sub _get_policy_config {
             $_->isa('Dist::Zilla::Plugin::Software::Policies')
             && $_->plugin_name =~ m/^ $policy $/msx
         } @{ $zilla->{'plugins'} };
-    # $zilla->log_debug( [ 'this_plugin: %s', Dumper $this_plugin, ] );
     if( $this_plugin ) {
         $zilla->log_debug( [ 'Discovered config for Software::Policies / %s: %s', $policy, $this_plugin->plugin_name ] );
-        # $zilla->log_debug( [ 'Discovered config for %s', $this_plugin->plugin_name ] );
         for my $key (qw( class version format dir filename )) {
             $args{$key} = $this_plugin->{$key} if $this_plugin->{$key};
         }
-        # @attributes{keys %attrs} = @attrs{keys %attrs};
         my %policy_attributes = %{ $this_plugin->{'policy_attribute'} };
         @attributes{keys %policy_attributes} = @policy_attributes{keys %policy_attributes};
     }
-    # $zilla->log_debug( [ 'args: %s, attributes: %s', \%args, \%attributes, ] );
 
     # 4. Config from the command line.
     for my $key (qw( class version format dir filename )) {
         $args{$key} = $opt->{$key} if $opt->{$key};
     }
-    # my $attributes = $opt->{'attributes'}//q{};
     my %attrs = map { split qr/\s*=\s*/msx, $_, 2 } (map { split qr/,/msx } $opt->{'attributes'}//q{});
     @attributes{keys %attrs} = @attrs{keys %attrs};
 

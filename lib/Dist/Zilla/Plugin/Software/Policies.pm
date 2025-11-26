@@ -8,7 +8,7 @@ use feature qw( say );
 
 # ABSTRACT: Create project policy files
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use Moose;
 with 'Dist::Zilla::Role::Plugin';

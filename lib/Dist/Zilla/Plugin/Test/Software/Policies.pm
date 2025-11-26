@@ -5,7 +5,7 @@ use warnings;
 use 5.010;
 
 # ABSTRACT: Tests to check your code against best practices
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 use Moose;
 
 use Moose::Util::TypeConstraints qw(

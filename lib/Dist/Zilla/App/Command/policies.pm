@@ -10,7 +10,7 @@ use feature qw( say );
 
 # ABSTRACT: Create project policy files
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 use Carp            qw( carp croak );
 use English qw( -no_match_vars ) ;  # Avoids regex performance

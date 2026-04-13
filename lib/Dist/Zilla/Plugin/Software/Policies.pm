@@ -90,6 +90,7 @@ file to ensure the wanted files are present and up-to-date when you run
 C<dzil test> or C<dzil release>.
 
     [Test::Software::Policies]
+    include_policy = AIDisclosure
     include_policy = Contributing
     include_policy = CodeOfConduct
     include_policy = License
@@ -107,8 +108,13 @@ in F<dist.ini> file. If you need to change the default values
 for things like distribution name, contact information or supported Perl versions,
 you need to set individual configuration for that policy:
 
+    [Software::Policies / AIDisclosure]
+    policy_attribute = ai_tools = Claude AI, Copilot and Gemini 
+
     [Software::Policies / Contributing]
     class = PerlDistZilla
+    policy_attribute = ai_disclosure=1
+    policy_attribute = ai_assisted=0
 
     [Software::Policies / CodeOfConduct]
     class = ContributorCovenant
